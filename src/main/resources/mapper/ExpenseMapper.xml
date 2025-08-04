@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="org.example.locktest.trip.ExpenseMapper">
+    <insert id="insert" parameterType="org.example.locktest.trip.Expense" useGeneratedKeys="true" keyProperty="expenseId">
+        INSERT INTO EXPENSE(trip_id,
+                            member_id,
+                            expense_name,
+                            amount,
+                            location,
+                            settlement_completed,
+                            created_at,
+                            updated_at
+        )
+        VALUES (#{tripId},
+                #{memberId},
+                #{expenseName},
+                #{amount},
+                #{location},
+                #{settlementCompleted},
+                #{createdAt},
+                #{updatedAt}
+               )
+    </insert>
+    <select id="searchByExpenseId" resultType="org.example.locktest.trip.Expense">
+        SELECT *
+        FROM EXPENSE
+        WHERE expense_id = #{expenseId}
+    </select>
+    <update id="updateSettlementCompleted">
+        UPDATE EXPENSE
+        SET settlement_completed = #{completed}
+        WHERE expense_id = #{expenseId}
+    </update>
+</mapper>

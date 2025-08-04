@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="org.example.locktest.trip.SettlementMapper">
+    <insert id="insert" parameterType="org.example.locktest.trip.SettlementNotes" useGeneratedKeys="true" keyProperty="settlementId">
+        INSERT INTO SETTLEMENT_NOTES (expense_id,
+                                      trip_id,
+                                      member_id,
+                                      share_amount,
+                                      is_payed,
+                                      received,
+                                      created_at,
+                                      updated_at
+        )
+        VALUES (#{expenseId},
+                #{tripId},
+                #{memberId},
+                #{shareAmount},
+                #{isPayed},
+                #{received},
+                #{createdAt},
+                #{updatedAt}
+               )
+    </insert>
+    <update id="updateIsPayedByExpenseIdAndMemberID">
+        UPDATE SETTLEMENT_NOTES
+        SET is_payed = true
+        WHERE expense_id = #{expenseId} AND member_id = #{senderId}
+    </update>
+    <select id="searchByMemberIdAndTripId" resultType="org.example.locktest.trip.SettlementNotes">
+        SELECT *
+        FROM SETTLEMENT_NOTES
+        WHERE member_id = #{memberId} AND trip_id = #{tripId}
+        ORDER BY created_at DESC
+            LIMIT #{pageable.pageSize} OFFSET #{pageable.offset}
+    </select>
+    <select id="searchByExpenseId" resultType="org.example.locktest.trip.SettlementNotes">
+        SELECT *
+        FROM SETTLEMENT_NOTES
+        WHERE expense_id = #{expenseId}
+    </select>
+    <select id="searchByMemberIdAndExpenseId" resultType="org.example.locktest.trip.SettlementNotes">
+        SELECT *
+        FROM SETTLEMENT_NOTES
+        WHERE expense_id = #{expenseId} AND member_id = #{memberId}
+    </select>
+</mapper>

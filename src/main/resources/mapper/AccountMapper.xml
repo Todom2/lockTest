@@ -1,0 +1,92 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<!DOCTYPE mapper
+        PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="org.example.locktest.Account.AccountMapper">
+
+    <resultMap id="AccountResultMap" type="org.example.locktest.Account.Account">
+        <id     property="accountId"       column="account_id"/>
+        <result property="memberId"        column="member_id"/>
+        <result property="accountNumber"   column="account_number"/>
+        <result property="accountPassword" column="account_password"/>
+        <result property="bank"            column="bank_name"/>
+        <result property="balance"         column="balance"/>
+        <result property="isActive"        column="is_active"/>
+        <result property="createdAt"       column="created_at"/>
+        <result property="updatedAt"       column="updated_at"/>
+    </resultMap>
+
+    <update id="updateMemberIdByAccountNumber">
+        UPDATE ACCOUNT
+        SET member_id = #{memberId}
+        WHERE account_number = #{accountNumber}
+    </update>
+    <select id="existsByAccountNumberAndAccountPassword" resultType="java.lang.Boolean">
+        SELECT EXISTS (SELECT 1
+                       FROM ACCOUNT
+                       WHERE account_number = #{accountNumber}
+                         AND account_password = #{accountPassword})
+    </select>
+    <select id="existsByNameAndAccountNumberAndAccountPassword" resultType="java.lang.Boolean">
+        SELECT EXISTS(SELECT 1
+                      FROM ACCOUNT
+                      WHERE name = #{name}
+                        AND account_number = #{accountNumber}
+                        AND account_password = #{accountPassword})
+    </select>
+    <select id="searchAccountByMemberId" resultMap="AccountResultMap">
+        SELECT * FROM ACCOUNT WHERE member_id = #{memberId}
+    </select>
+    <select id="searchAccountByMemberIdForUpdate" resultType="org.example.locktest.Account.Account">
+        SELECT
+            account_id,
+            member_id,
+            name,
+            account_number,
+            account_password,
+            bank_name,
+            balance,
+            is_active,
+            created_at,
+            updated_at
+        FROM ACCOUNT
+        WHERE member_id = #{memberId}
+            FOR UPDATE
+    </select>
+    <update id="transactionBalance" >
+        UPDATE ACCOUNT
+        SET balance = CASE
+                          WHEN member_id = #{receiverId} THEN balance + #{amount}
+                          WHEN member_id = #{senderId} THEN balance - #{amount}
+                          ELSE balance
+            END
+        WHERE member_id IN (#{receiverId}, #{senderId})
+    </update>
+    <update id="withdraw">
+        UPDATE ACCOUNT
+        SET balance = balance - #{amount}
+        WHERE account_number = #{accountNumber};
+    </update>
+    <update id="updateBalanceWithVersion">
+        UPDATE ACCOUNT
+        SET balance = #{newBalance},
+            version = version + 1,
+            updated_at = NOW()
+        WHERE member_id = #{memberId}
+          AND version = #{currentVersion}
+    </update>
+    <update id="updateBalancesWithOptimisticLock">
+        UPDATE ACCOUNT
+        SET
+            balance = CASE
+                          WHEN member_id = #{senderId} THEN balance - #{amount}
+                          WHEN member_id = #{receiverId} THEN balance + #{amount}
+                END,
+            version = version + 1,
+            updated_at = NOW()
+        WHERE
+            (member_id = #{senderId} AND version = #{senderVersion}) OR
+            (member_id = #{receiverId} AND version = #{receiverVersion})
+    </update>
+</mapper>
